@@ -3,12 +3,6 @@ import 'package:flutter_application_1/models/question_model.dart';
 import 'package:flutter_application_1/services/api.dart';
 import 'package:flutter_application_1/pages/learningpage.dart';
 
-int? selectedAnswerIndex;
-int questionIndex = 0;
-int idx = 0;
-int score = 0;
-bool checked = false;
-String buttonText = "Check Answer";
 Future<List<Question>>? fetchedQuestions;
 List<Question>? questions;
 
@@ -17,6 +11,7 @@ Future<List<Question>> fetchQuizQuestions() async {
   var data = {"refreshToken": refreshToken};
   return API.parseQ(data);
 }
+
 class ProgressBar extends StatefulWidget {
   final int currentIndex;
   final int totalQuestions;
@@ -25,7 +20,7 @@ class ProgressBar extends StatefulWidget {
     Key? key,
     required this.currentIndex,
     required this.totalQuestions,
-  }) : super (key: key);
+  }) : super(key: key);
 
   _ProgressBarState createState() => _ProgressBarState();
 }
@@ -33,7 +28,7 @@ class ProgressBar extends StatefulWidget {
 class _ProgressBarState extends State<ProgressBar> {
   @override
   Widget build(BuildContext context) {
-    double progress = widget.currentIndex/widget.totalQuestions;
+    double progress = widget.currentIndex / widget.totalQuestions;
     return LinearProgressIndicator(
       value: progress,
       backgroundColor: Colors.grey[300],
@@ -50,6 +45,7 @@ class AnswerCard extends StatelessWidget {
     required this.currentIndex,
     required this.correctAnswer,
     required this.selectedAnswerIndex,
+    required this.check
   });
 
   final String question;
@@ -57,73 +53,51 @@ class AnswerCard extends StatelessWidget {
   final String correctAnswer;
   final int? selectedAnswerIndex;
   final int currentIndex;
+  final bool check;
 
   @override
   Widget build(BuildContext context) {
     bool isCorrectAnswer = question == correctAnswer;
     bool isWrongAnswer = !isCorrectAnswer && isSelected;
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 10.0,
-      ),
-      child: selectedAnswerIndex != null
-          // if one option is chosen
-          ? Container(
-              height: 70,
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isCorrectAnswer
+        padding: const EdgeInsets.symmetric(
+          vertical: 10.0,
+        ),
+        child: Container(
+          height: 70,
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.lightBlue[200] : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selectedAnswerIndex != null && check
+                  ? isCorrectAnswer
                       ? Colors.green
                       : isWrongAnswer
                           ? Colors.red
-                          : Colors.grey,
+                          : Colors.grey
+                  : Colors.white,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  question,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      question,
-                      style: const TextStyle(fontSize: 16, color: Colors.red),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  isCorrectAnswer
+              const SizedBox(height: 10),
+              selectedAnswerIndex == null || !check
+                  ? const SizedBox.shrink()
+                  : isCorrectAnswer
                       ? buildCorrectIcon()
                       : isWrongAnswer
                           ? buildWrongIcon()
                           : const SizedBox.shrink(),
-                ],
-              ),
-            )
-          // If no option is selected
-          : Container(
-              height: 70,
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.white,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      question,
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
+            ],
+          ),
+        ));
   }
 }
 
@@ -155,7 +129,6 @@ class _QuizFetchScreenState extends State<QuizFetchScreen> {
   @override
   Widget build(BuildContext context) {
     //final question = questions[0];
-
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
@@ -198,6 +171,12 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
+  int? selectedAnswerIndex;
+  int questionIndex = 0;
+  int idx = 0;
+  int score = 0;
+  bool checked = false;
+  String buttonText = "Check Answer";
   @override
   Widget build(BuildContext context) {
     Question currQuestion = questions![questionIndex];
@@ -206,7 +185,8 @@ class _QuizScreenState extends State<QuizScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          ProgressBar(currentIndex: questionIndex, totalQuestions: questions!.length),
+          ProgressBar(
+              currentIndex: questionIndex, totalQuestions: questions!.length),
           Text(
             currQuestion.questionTitle,
             style: const TextStyle(fontSize: 25, color: Colors.white),
@@ -216,19 +196,22 @@ class _QuizScreenState extends State<QuizScreen> {
             shrinkWrap: true,
             itemCount: currQuestion.options.length,
             itemBuilder: (context, index) {
+              bool isSelected = selectedAnswerIndex == index;
               return GestureDetector(
-                  onTap: selectedAnswerIndex == null
-                      ? () {
-                          selectedAnswerIndex = index;
-                          idx = index;
-                        }
-                      : null,
+                  onTap: checked
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedAnswerIndex = index;
+                          });
+                        },
                   child: AnswerCard(
                     currentIndex: index,
                     question: currQuestion.options[index],
-                    isSelected: selectedAnswerIndex == index,
+                    isSelected: isSelected,
                     selectedAnswerIndex: selectedAnswerIndex,
                     correctAnswer: currQuestion.answer,
+                    check: checked
                   ));
             },
           ),
@@ -236,28 +219,31 @@ class _QuizScreenState extends State<QuizScreen> {
             height: 30,
           ),
           GestureDetector(
-            onTap: selectedAnswerIndex == null
+            onTap: !checked
                 ? () {
-                    if (!checked) {
-                      if (currQuestion.options[idx] == currQuestion.answer) {
+                    if (selectedAnswerIndex != null) {
+                      if (currQuestion.options[selectedAnswerIndex!] == currQuestion.answer) {
                         ++score;
                       }
+                    }
+                    setState(() {
                       checked = true;
                       buttonText = "Continue";
-                    }
-                    setState(() {});
+                    });
                   }
                 : questionIndex == questions!.length - 1
                     ? () {
-                        Navigator.pushReplacementNamed(context, '/scorescreen', arguments: score);
+                        Navigator.pushReplacementNamed(context, '/scorescreen',
+                            arguments: score);
                       }
                     : () {
-                        ++questionIndex;
-                        selectedAnswerIndex = null;
-                        buttonText = "Check Answer";
-                        checked = false;
-                        currQuestion = questions![questionIndex];
-                        setState(() {});
+                        setState(() {
+                          ++questionIndex;
+                          selectedAnswerIndex = null;
+                          buttonText = "Check Answer";
+                          checked = false;
+                          currQuestion = questions![questionIndex];
+                        });
                       },
             child: Container(
               height: 50,
