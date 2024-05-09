@@ -4,6 +4,7 @@ import 'package:flutter_application_1/pages/profilepage.dart';
 import 'package:flutter_application_1/pages/learningpage.dart';
 import 'package:flutter_application_1/pages/registerpage.dart';
 import 'package:flutter_application_1/pages/loginpage.dart';
+import 'package:flutter_application_1/pages/scorescreen.dart';
 import 'package:flutter_application_1/pages/settingspage.dart';
 import 'package:flutter_application_1/services/api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +23,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      initialRoute: '/',
       home: isAuthenticated ? MyHomePage(title: 'I-code') : LoginPage(),
+      routes: {
+        '/learningpage' : (context) => LearningPage(),
+        '/scorescreen' :(context) => ScoreScreen(score: ModalRoute.of(context)?.settings.arguments as int)
+      },
     );
   }
 }
@@ -43,25 +49,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: mainColor,
-      body: IndexedStack( 
+      body: IndexedStack(
         index: currentPageIndex,
         children: screens,
       ),
-      bottomNavigationBar: BottomNavigationBar( 
+      bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
             setState(() {
               currentPageIndex = index;
             });
         },
         currentIndex: currentPageIndex,
-        items: const <BottomNavigationBarItem>[ 
+        items: const <BottomNavigationBarItem>[
            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'learn',),
            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile',),
            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings',),
         ],
-        
+
       ),
     );
   }
 }
-
