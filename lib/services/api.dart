@@ -1,10 +1,11 @@
 import 'dart:convert';
-
+import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_1/models/question_model.dart';
 class API {
-  static const baseUrl = "http://192.168.40.241:2000/api/";
+  static const baseUrl = "http://192.168.3.94:2000/api/";
   static var currentUserData = new FlutterSecureStorage();
   static bool containUser = false;
 
@@ -108,4 +109,42 @@ static signUp(Map data) async {
       return [];
     }
   }
+
+  static Future<void> updateLevel(Map data) async {
+  var url = Uri.parse("${baseUrl}/parse/updatelevel");
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(data),
+    );
+    if (response.statusCode != 200) {
+      print("Failed to update level. Status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
+    } else {
+      print("Level updated successfully!");
+    }
+  } catch (e) {
+    print("Error updating level: ${e.toString()}");
+  }
 }
+
+  static Future<Image?> parseImage(String id) async {
+    var url = Uri.parse("${baseUrl}/image/image/${id}");
+    try {
+      final response = await http.get(url);
+      if(response.statusCode == 200) {
+        return Image.memory(response.bodyBytes);
+      }
+      else {
+        print("Unable to parse image");
+      }
+    } catch (e) { 
+      print("Error parsing image: ${e.toString()}");
+      
+      return null;
+    }
+  }
+}
+
+  

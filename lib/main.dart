@@ -8,6 +8,7 @@ import 'package:flutter_application_1/pages/scorescreen.dart';
 import 'package:flutter_application_1/pages/settingspage.dart';
 import 'package:flutter_application_1/services/api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_application_1/pages/testpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +43,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int currentPageIndex = 0;
-  final screens = [LearningPage(), ProfilePage(), SettingsPage()];
+  final screens = [LearningPage(), ProfilePage(), ImageLoaderPage()];
   Color mainColor = const Color(0xFF252C4A);
   Color secondColor = const Color(0xFF117EEB);
   @override
